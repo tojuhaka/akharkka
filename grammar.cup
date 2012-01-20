@@ -1,0 +1,110 @@
+package demogame;
+import java.util.ArrayList;
+import java_cup.runtime.Symbol;
+
+parser code {:
+  public void unrecovered_syntax_error(Symbol cur_token) {
+   //do nothing, game handles the error
+  }
+  
+  public void syntax_error(Symbol cur_token) {
+   //do nothing, game handles the error
+  }
+:};
+
+terminal use, take, get, candle, hammer, axe, the, a, an, then, at, on , and, wall,
+workbench, chair, door, go, gotu, open, push, pull, examine,
+talk, kill, hallway, goblin, boss, princess, talkto,
+back, window, pillowcase, look, hug, gustav, drop, dismiss, toss;
+
+non terminal ArrayList<Action> E, CONT;
+
+non terminal Act TOOL_ACTION, OBJECT_ACTION, NPC_ACTION;
+non terminal Target TOOL, NPC, OBJECT, TOOL_TARGET;
+
+non terminal String PAS;
+
+E ::= TOOL_ACTION:a TOOL:b TOOL_TARGET:c CONT:d {:
+                    RESULT = new ArrayList<Action>();
+                    Action action = new Action(Type.TOOL, a, b,c);
+                    RESULT.add(action);
+                    for (Action s : d) { RESULT.add(s); }
+                     :}
+
+| OBJECT_ACTION:a OBJECT:b CONT:c {:
+                    RESULT = new ArrayList<Action>();
+                    Action action = new Action(Type.OBJECT, a, b);
+                    RESULT.add(action);
+                    for (Action s : c) { RESULT.add(s); }
+                     :}
+| NPC_ACTION:a NPC:b CONT:c {:
+                    RESULT = new ArrayList<Action>();
+                    Action action = new Action(Type.NPC, a, b);
+                    RESULT.add(action);
+                    for (Action s : c) { RESULT.add(s); }
+                     :}
+                     ;
+
+TOOL_ACTION ::= use {:RESULT = Act.use; :}
+            | take {:RESULT = Act.take; :}
+            | get {:RESULT = Act.get; :} 
+            | drop {: RESULT = Act.drop; :}
+            | dismiss {: RESULT = Act.dismiss; :}
+            | toss   {: RESULT = Act.toss; :}
+            ;
+TOOL ::= PAS candle {:RESULT = Target.candle; :}
+     | PAS hammer {:RESULT = Target.hammer; :}
+     | PAS axe {:RESULT = Target.axe; :}
+     | PAS pillowcase {:RESULT = Target.pillowcase;:}
+     ;
+
+TOOL_TARGET ::= /**/
+            | NPC:a {: RESULT = a; :}
+            | TOOL:a {: RESULT = a; :}
+            | OBJECT:a {: RESULT = a; :}
+            ;
+
+OBJECT_ACTION ::= go  {:RESULT = Act.go; :}
+              | gotu {:RESULT = Act.gotu; :}
+              | open  {:RESULT = Act.open; :}
+              | push  {:RESULT = Act.push; :}
+              | pull  {:RESULT = Act.pull; :}
+              | examine {:RESULT = Act.examine; :}
+              | look {:RESULT = Act.look; :}
+              ;
+
+OBJECT ::= PAS wall {:RESULT = Target.wall; :}
+       | PAS workbench {:RESULT = Target.workbench; :}
+       | PAS chair {:RESULT = Target.chair; :}
+       | PAS door  {:RESULT = Target.door; :}
+       | PAS hallway {:RESULT = Target.hallway; :}
+       | PAS back {:RESULT = Target.back; :}
+       | PAS window {:RESULT = Target.window; :}
+       ;
+
+NPC_ACTION ::= talk {:RESULT = Act.talk;:}
+           | talkto {:RESULT = Act.talkto;:}
+           | kill   {:RESULT = Act.kill; :}
+           | hug {:RESULT = Act.hug; :}
+           ;
+
+NPC ::= PAS goblin {:RESULT = Target.goblin;:}
+    | PAS boss {:RESULT = Target.boss;:}
+    | PAS princess {:RESULT = Target.princess;:}
+    | PAS gustav {: RESULT = Target.gustav; :}
+    ;
+
+PAS ::= /**/  {: RESULT = ""; :}
+    | the
+    | a 
+    | an
+    | at PAS
+    | on PAS
+    ;
+
+CONT ::= /**/  {:RESULT = new ArrayList<Action>(); :}
+     | then E:e {:RESULT = e; :}
+     | and CONT:c {:RESULT = c; :} 
+     | E:e {:RESULT = e; :};
+
+

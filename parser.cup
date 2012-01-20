@@ -1,0 +1,42 @@
+terminal M, D, C, L, X, V, I;
+non terminal Integer S, Ms, Cs, Ce, Xs, Xe, Is, Ie;
+
+S ::= Ms:m Cs:c Xs:x Is:i  {: RESULT = m + c + x + i; :}
+    ;
+
+Ms ::= /**/                {: RESULT = 0; :}
+     | Ms:m M              {: RESULT = m + 1000; :}
+     ;
+
+Cs ::= /**/                {: RESULT = 0; :}
+     | C Ce:c              {: RESULT = 100 + c; :}
+     | D Ce:c              {: RESULT = 500 + c; :}
+     | C D                 {: RESULT = 400; :}
+     | C M                 {: RESULT = 900; :}
+     ;
+
+Ce ::= /**/                {: RESULT = 0; :}
+     | Ce:c C              {: RESULT = 100 + c; :}
+     ;
+
+Xs ::= /**/                {: RESULT = 0; :}
+     | X Xe:x              {: RESULT = 10 + x; :}
+     | L Xe:x              {: RESULT = 50 + x; :}
+     | X L                 {: RESULT = 40; :}
+     | X C                 {: RESULT = 90; :}
+     ;
+
+Xe ::= /**/                {: RESULT = 0; :}
+     | Xe:x X              {: RESULT = 10 + x; :}
+     ;
+
+Is ::= /**/                {: RESULT = 0; :}
+     | I Ie:i              {: RESULT = 1 + i; :}
+     | V Ie:i              {: RESULT = 5 + i; :}
+     | I V                 {: RESULT = 4; :}
+     | I X                 {: RESULT = 9; :}
+     ;
+
+Ie ::= /**/                {: RESULT = 0; :}
+     | Ie:i I              {: RESULT = 1 + i; :}
+     ;

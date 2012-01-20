@@ -1,0 +1,166 @@
+\documentclass[a4paper,12pt,finnish]{article}
+\usepackage[all]{xy}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+
+\begin{document}
+
+\noindent
+Harjoitustyö  (23.3.2011)\hfill TIEA241 Automaatit ja kieliopit
+\hrule
+
+\section {Johdanto}
+Otin tehtäväkseni toteuttaa tekstiseikkailupelille rungon ja samalla lyhyen demonstraatiopelin javalla. Aluksi tarkoitukseni
+oli tehdä isompi kontekstiton kielioppi ja tämän jälkeen koodata kieliopista tunnistin suoraan käsin ilman minkäänlaisia
+apuvälineitä. Tämä osoittautukin hyvin ongelmalliseksi, varsinkin silloin kun kieltä muutettiin kesken ohjelman kirjoituksen.
+Säästääkseni siis itseäni ja luennoitsijaa, päätin perehtyä CUP:iin (Parser Generator for java). CUP osoittautukin
+upeaksi työkaluksi. Se auttoi suunnattomasti kieliopin rakentamista ohjelmakoodin puolelle sekä tarjosi suoraan ominaisuuksia,
+joilla pystyttiin vähentämään ohjelmakoodissa tapahtuvaa parsimista. \\
+\newline
+
+ Kun kielioppi oli saatu valmiiksi ja tätä varten tehtytunnistin käännetty, oli tehtävä maailmassa liikkumiselle jokin
+tehokas systeemi. Tähän olisikin varsin näppärää toteuttaa DFA (deterministinen äärellinen automaatti), jossa tilat
+määrittelevät pelin etenemisen. Pelissä voimme kuitenkin ottaa tavaroita haltuun ja ilman niitä emme välttämättä
+pääse etenemään maailmassa. Miksipä emme siis käyttäisi DFA:sta yleistettyä pinoautomaattia, joka on ilmaisuvoimaisempi
+kuin pelkkä DFA sellaisenaan.
+
+
+\section {Työn esittelyjärjestys}
+Aluksi käymme läpi yleisellä tasolla lyhyesti koodin luokkarakenteen.
+Ohjelmakoodin selittäminen jätetään kuitenkin "tyngäksi", koska se ei ole kurssin kannalta oleellisinta. Tämän jälkeen katsastamme läpi
+peliin toteutetun demonstraatiopelin pinoautomaatin. Lopuksi esittelemme koko kontekstittoman
+kieliopin produktioineen ja annamme pieniä esimerkkejä kieliopista, sekä näytämme miten pelin "juostaan" läpi yhdellä syötteellä.
+
+\newpage
+\section {Koodi lyhyesti}
+Ohjelman kannalta tärkeät luokat ovat seuraavat:
+\begin {itemize}
+\item Action, Actions
+\item Case, Cases
+\item CaseDFA
+\item Main
+\item parser, sym, Lexer
+\end  {itemize}
+
+Action -olio hoitaa yhden käyttäjän antaman \textit{actionin}. Yhdelle textit{actionille} tuodaan paramaterina automaatti -olio (CaseDFA), 
+jolloin\textit{actioni} tietää minkä syötteen se antaa automaatille. Syötteet ovat automaatissa aliohjelmina. Case -olio taas
+käsittelee yksittäisen \textit{tilanteen} maailmassa ja osaa kuvailla tämän. Case -olio osaa myös antaa Action -olion perusteella
+vastauksen merkkijonona, jos sinne on olion luomisen aikana tällainen \textit{action-answer-pari} määritelty. Sillä on myös tieto \textit{isVisited},
+eli onko tilassa oltu jo kerran. Jos ollaan, annetaan joissakin tilanteissa käyttäjälle eri kuvaus kuin alkuperäinen luonnin yhteydessä
+määritelty kuvaus.
+
+Parser, sym ja Lexer -luokat on toteutettu CUP:ia käyttäen parsimaan määrittelemämme kielioppi. Parser -olion tehtävänä
+on palauttaa lista kaikista niistä Action -olioista, mitä syntyy käyttäjän antaessa syötettä. Esimerkiksi "open the door and then
+take the candle" -syöte sisältää kaksi Action-oliota. CaseDFA -olio on pinoautomaatti, josta tarkemmin seuraavassa kappaleessa.
+
+Main -luokka hoitaa yksinkertaisesti pelin käynnistämisen ja pelaamisen. Cases -olio hoitaa maailman alustamisen Case -olioilla.
+
+\section {Pinoautomaatti}
+
+Automaatissa olevat kuusi(6) tilaa eivät ole sama asia kuin yksittäinen Case-olio. Automaatissa erillisillä syötteillä ja pinonmuutoksilla
+määritellään muuttuuko Case-olio, joka tarjoaa tilanteen kuvauksen. Seuraavassa kaaviossa on piirretty pinoautomaatti demonstraatiopeliä
+varten. Automaatti ei sisällä kaikkia syötteitä mitä lopussa esittelemämme kielioppi on kykenevä tunnistamaan. Kuten sanottu tämä on vain demonstraatiopeli,
+jossa osoitetaan kuinka pinoautomaattia voidaan hyödyntää pelin rakentamisessa.
+
+\newpage
+\subsection {Symbolit ja automaatti}
+\begin{itemize}
+
+\item $\dagger$ = tyhjä pino, $\varepsilon$ = epsilon
+\item $o$ = open door, $tc$ = take candle
+\item $c$ = candle, $a$ = axe
+ \item $gb$ = go back, $g$ = go hallway
+ \item $u$ = use axe, $tx$ = take axe
+\end{itemize}
+
+
+ \[
+  \xymatrix{
+    \ar@/l6pt/[r]^{\varepsilon,\varepsilon \to \dagger} &
+    *++[o][F]{0} \ar@(ur,u)_{tc,\varepsilon \to c} \ar@/u6pt/[r]^{o,\varepsilon \to \varepsilon} &
+    *++[o][F]{1} \ar[r]^{g,c \to c} \ar@(ur,u)_{tc,\varepsilon\to c} \ar@(dr,d)^{tc,c\to c} \ar @/d6pt/[l]^{gb, \varepsilon \to \varepsilon} &
+    *++[o][F]{2} \ar@(ur,u)_{tx,c\to a}  \ar@/u6pt/[r]^{o, a \to a} &
+    *++[o][F]{3} \ar@/d6pt/[l]^{gb, \varepsilon \to \varepsilon} \ar[r]^{u, a \to \varepsilon} &
+    *++[o][F]{4} \ar[r]^{o, \dagger \to \varepsilon} &
+    *++[o][F=]{5} 
+  }
+  \]
+
+\subsection {Selvitys maailman tiloista ja vaihtoehdoista}
+
+\begin{enumerate}
+\setcounter{enumi}{-1}
+\item  Herätään huoneesta, vaihtoehtoina oven avaus tai kynttilän ottaminen pöydältä. Päätehtävänä on pelastaa prinsessa, 
+joka on vankina linnassa.
+\item Oven voi avata ilman kynttilää, mutta ovesta käytävään ei voi mennä ilman kynttilää.
+\item  Käytävä mennään automaattisesti päästä päähän, jolloin kynttilä sammuu. Edessä on näkyvissä ovi, jonka vierellä nojaa seinää vasten kirves.
+Vaihtoehtoina on oven avaus tai kirveen ottaminen haltuun. Ovea ei kuitenkaan voi avata ilman kirvestä, koska sen takana on pelottava örkki.
+ Kirvestä ottaessa kynttilä tiputetaan maahan samalla. 
+\item  Oven avauduttua örkki haastetaan taisteluun. Vaihtoehtoina on tappaa örkki tai paeta takaisin oven taakse.
+\item Örkki kuolee suorasta kirveen heitosta, jolloin jäljelle jää vankilan oven avaaminen, jossa oletetusti prinsessa on. Tässä
+vaiheessa kirvestä ei enää ole kädessä. Vaihtoehtoina oven avaaminen.
+\item Karu totuus kuitenkin paljastuu sankarillemme. Vankila on nimttäin tyhjä ja prinsessa on toisessa linnassa.
+\end {enumerate}
+
+\section {Kontekstiton kielioppi}
+\subsection {Esimerkkejä kielestä}
+Pelissä keskustellaan maailman kanssa kirjoittamalla komentoja. Kuten alussa mainitsimme, voi komentoja olla monta
+yhdessä syötteessä. Yksi komento koostuu yleensä kahdesta osasta: \textit{toiminnosta} ja \textit{kohteesta}, mutta on myös mahdollista, että komennossa on vielä kolmaskin osa: \textit{kohteen kohde}. \\ \newline Esimerkkejä kaksiosaisista käskystä:
+  \begin{flushleft}
+ \textit{take axe} \\
+ \textit{take the axe} \\
+\textit{use a candle } \\
+\textit{kill the goblin} \\
+\end{flushleft} 
+ Esimerkkejä kolmiosaisista käskyistä (kielessämme mahdollista käyttää vain \textit{TOOL} -tyyppisissä lauseissa):
+
+  \begin{flushleft}
+ \textit{use the axe on the goblin} \\
+ \textit{use pillowcase on princess } \\
+\textit{drop the hammer on workbench } \\
+\end{flushleft}
+ Esimerkkejä komentojen yhdistelemisestä:
+  \begin{flushleft}
+ \textit{take the axe and then use the axe on the goblin} \\
+ \textit{use pillowcase on princess then hug princess } \\
+\textit{kill the goblin and then open the door } \\
+\end{flushleft}
+\newpage
+\subsection {Kontekstiton kielioppi produktioineen}
+ Seuraavaksi esitellään kielioppi produktioineen. Huomaa, että kaikki kieliopin määrittelemät syötteet
+eivät ole demonstraatiopelissä mukana.
+
+  \begin{align*}
+    E &\to TOOLACTION \ \ TOOL \ \ TOOLTARGET \ \  CONT \\
+    E &\to OBJECTACTION \ \ OBJECT \ \    CONT \\
+    E &\to NPCACTION \ \ NPC \ \ CONT \\ 
+\\
+    TOOLACTION &\to use \ | \ take \ |\ get \ | \ drop \ | \ dismiss \ | \ toss\\
+    TOOL &\to PAS  \ candle \ | \ PAS \ hammer \ | \ PAS \  axe \ | \ PAS \  pillowcase\\
+   TOOLTARGET &\to NPC \ | \ TOOL \ | \ OBJECT \\
+\\
+OBJECTACTION &\to go \ | \ gotu \ |\ open \ | \ push \ | \ pull \ | \ examine \ | \ look\\
+OBJECT &\to  PAS \ wall  \ |\ PAS \ workbench \ | \  PAS \ chair \ | \  PAS \ door \ | \  PAS \ hallway \ | \  PAS \ back | \  PAS \ window  \\
+\\
+NPCACTION &\to talk \ | \ talkto \ | \ kill \ | \ hug \\
+NPC &\to PAS \ goblin \ | \ PAS \ boss \ | \ PAS \ princess \ | \ PAS \ gustav \\
+\\
+PAS &\to\varepsilon \ | \ the \ | \ a \ | \ an \ | \ at \ PAS \ | \ on \ PAS \\
+\\
+CONT &\to\varepsilon \ | \ then \ E \ | \ and \ CONT \ | \ E  \\
+\end{align*}
+Pelin läpäiseminen suoraan onnistuu esimerkiksi seuraavalla syötteellä: \\
+\newline
+\textit{ take the candle then open the door and then go to the hallway then take the axe and open the door and then use the axe on goblin then open the door} \\
+\newline
+Kieli pyrkii näyttämään mahdollisimman selkokieliseltä. Kuitenkaan ei poissuljeta mahdollisuutta kirjoittaa vielä alkeellisempiakin lauseita. Pelin siis voi läpäistä myös seuraavalla komennolla: \\ \newline
+\textit{take candle open door go  hallway take axe open door use axe goblin open door}
+
+\section {Loppusanat}
+Harjoitustyö osoittautui varsin mielenkiintoiseksi projektiksi ja antoi erittäin paljon uusia lähtökohtia asioiden tekemiseen. Erityisesti tuli huomattua, kuinka tärkeitä asioita tässä työssä käytetyt metodit ovat. Jälleen tuli itselle todistettua miksi harjoitustyön tekeminen on paljon antoisampaa ja opettavaisempaa kuin pelkän tentin teko. Ohjelmakoodissa olisi voinut panostaa vielä enemmän olio-ohjelmoinnin rakenteeseen, mutta koska tämä ei oikeastaan kuulunut kurssin asioihin, en antanut sille niin suurta painoarvoa. Sama politiikka oli myös testejen sekä kommentoinnin kanssa.
+
+Työ antoi sivussa myös paljon muutakin kuin ainoastaan kontekstittoman kieliopin ja pinoautomaatin soveltamisen ohjelmointiin. Erityisesti tuli perehdyttyä CUP:iin ja tätä kautta oppi myös YACC:ia. Esseen kirjoituksestakin tuli tärkeä osa työtä ja tässä saikin ensikosketusta Latexin ihmeelliseen maailmaan. Erityisesti kaavioiden piirtämisen helppous ja selkeys hämmästytti. Kaikinpuolin kurssi oli hyödyllinen ja mielenkiintoinen.
+ 
+
+
+\end{document}

@@ -1,0 +1,12 @@
+terminal OPEN, DOOR;
+non terminal String E, T, S;
+
+E ::= T S              {: RESULT = "asdf"; :}
+     ;
+
+T ::= OPEN                {: RESULT = "OPEN"; :}
+     ;
+
+S ::= DOOR             {: RESULT = "DOOR"; :}
+     ;
+

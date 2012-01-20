@@ -1,0 +1,20 @@
+// Java CUP specification for a simple expression evaluator (no actions)
+
+import java_cup.runtime.*;
+
+/* Preliminaries to set up and use the scanner.  */
+init with {: scanner.init();              :};
+scan with {: return scanner.next_token(); :};
+
+/* Terminals (tokens returned by the scanner). */
+terminal    DOOR, OPEN;
+
+/* Non terminals */
+non terminal    E, OBJECT_ACTION, OBJECT;
+
+start with E;
+
+/* The grammar */
+E ::= OBJECT_ACTION OBJECT;
+OBJECT_ACTION ::= OPEN;
+OBJECT ::=  DOOR;
